@@ -101,12 +101,12 @@ uv run -m mcp_server.mcpserver
 ### 1. 新增自定义MCP工具和方法实现 | Add Custom MCP Tools and Method Implementations
 
 以 `txt2img` 为例，扩展新工具只需：
-- 新增 `tools/myapi.py`，实现 `register_myapi_tool(mcp)` 并注册 API
+- 新增 `tools/myapi.py`，实现 `register_myapi_tool(mcp)` 并注册 MCP服务(tool)
 - 新增 `tools/myapi_api.json`，定义参数模板(在被调用的ComfyUI的自定义工作流导出同名API，加后缀_api) 
 - 无需修改主入口，自动生效
 
 To add a new tool (e.g., `txt2img`):
-- Add `tools/myapi.py`, implement `register_myapi_tool(mcp)` and register the API
+- Add `tools/myapi.py`, implement `register_myapi_tool(mcp)` and register the MCP service(tool)
 - Add `tools/myapi_api.json` to define the parameter template (export the same-named API with `_api` suffix from the custom workflow of the target ComfyUI instance)
 - No need to modify the main entry, it will take effect automatically
 
@@ -130,16 +130,17 @@ def register_txt2img_tool(mcp):
 - 调用ComfyUI在线工作流HTTP API，获得结果。 | Call the ComfyUI online workflow HTTP API to obtain results.
 - 所有参数均可省略，默认值取自对应Json `tools/txt2img_api.json` | All parameters are optional; default values are taken from the corresponding JSON file `tools/txt2img_api.json`.
 - 返回图片 Markdown 链接，可直接用于文档或前端展示 | Returns image Markdown links, can be used directly in docs or frontend
+- 再把以上功能实现，封装成对应的MCP服务(tool) | Then encapsulate the above functionalities into the corresponding MCP service (tool).
 
 ---
 
-### 2. 工具自动注册 | Tool Auto-Registration
+### 2. MCP工具自动注册 | MCP Tool Auto-Registration
 
 - `mcpserver.py` 会自动遍历 `tools/` 目录下所有 `.py` 文件（如 `txt2img.py`），并调用其中的 `register_xxx_tool(mcp)` 注册函数。
-- 每个工具模块需实现 `register_xxx_tool(mcp)`，并通过 `@mcp.tool()` 装饰器注册 API。
+- 每个工具模块需实现 `register_xxx_tool(mcp)`，并通过 `@mcp.tool()` 装饰器注册 MCP服务(tool)。
 
 - `mcpserver.py` will automatically traverse all `.py` files in the `tools/` directory (such as `txt2img.py`) and call their `register_xxx_tool(mcp)` registration function.
-- Each tool module must implement `register_xxx_tool(mcp)` and register the API via the `@mcp.tool()` decorator.
+- Each tool module must implement `register_xxx_tool(mcp)` and register the MCP service(tool) via the `@mcp.tool()` decorator.
 
 **示例 | Example：**
 
@@ -153,13 +154,13 @@ def register_txt2img_tool(mcp):
 
 ### 3. 配置驱动参数 | Config-Driven Parameters
 
-- 每个 API 的参数签名、类型、注释均可通过同名 JSON（如 `tools/txt2img_api.json`）配置生成。在被调用的ComfyUI的自定义工作流导出同名API，加后缀_api。
+- 每个 MCP服务(tool) 的参数签名、类型、注释均可通过同名 JSON（如 `tools/txt2img_api.json`）配置生成。在被调用的ComfyUI的自定义工作流导出同名API，加后缀_api。
 - 所有参数均为可选，未传时自动取模板默认值，支持递归 seed 随机化、模型白名单、batch_size 限制等业务规则。
-- 新增API的JSON模板需在被调用的ComfyUI自定义工作流导出同名API，加后缀_api，并放置于tools目录。
+- 新增MCP服务(tool)的JSON模板需在被调用的ComfyUI自定义工作流导出同名API，加后缀_api，并放置于tools目录。
 
 - Each API's parameter signature, type, and docstring can be auto-generated via a same-named JSON (e.g., `tools/txt2img_api.json`).
-- All parameters are optional; if not provided, default values from the template are used. Supports recursive seed randomization, model whitelist, batch_size limit, and other business rules.
-- For new APIs, the JSON template should be exported from the custom workflow of the target ComfyUI instance, with the same API name and the suffix `_api`, and placed in the `tools` directory.
+- MCP service(tool) parameters are optional; if not provided, default values from the template are used. Supports recursive seed randomization, model whitelist, batch_size limit, and other business rules.
+- For new MCP service(tool), the JSON template should be exported from the custom workflow of the target ComfyUI instance, with the same API name and the suffix `_api`, and placed in the `tools` directory.
 
 **示例片段 `tools/txt2img_api.json`| Example snippet：**
 
