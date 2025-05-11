@@ -1,11 +1,10 @@
-<<<<<<< HEAD
-# MCP Server（ComfyUI ModelContextProtocol 服务端 | ModelContextProtocol Server for ComfyUI）
+# ComfyUI_MCP Server（ComfyUI的ModelContextProtocol 服务端 | ModelContextProtocol Server for ComfyUI）
 
 ## 项目简介 | Project Introduction
 
-MCP Server 是为 ComfyUI 设计的松耦合、可扩展、配置驱动的模型上下文协议（ModelContextProtocol）服务端。支持依据客户定制工作流可扩展 API（如 txt2img、img2img），每个 API 的参数和行为均可通过 JSON 配置和工具模块灵活扩展，适合 AI 绘图、推理等场景的自动化与集成。
+ComfyUI_MCP Server 是为 ComfyUI 设计的松耦合、可扩展、配置驱动的模型上下文协议（ModelContextProtocol）服务端。支持依据客户定制工作流可扩展 API（如 txt2img、img2img），每个 API 的参数和行为均可通过 JSON 配置和工具模块灵活扩展，适合 AI 绘图、推理等场景的自动化与集成。
 
-MCP Server is a loosely coupled, extensible, and configuration-driven ModelContextProtocol (MCP) server designed for ComfyUI. It supports extensible APIs (such as txt2img, img2img) based on customer-customized workflows. Each API's parameters and behaviors can be flexibly extended via JSON configuration and tool modules, making it suitable for automation and integration in AI drawing, inference, and similar scenarios.
+ComfyUI_MCP Server is a loosely coupled, extensible, and configuration-driven ModelContextProtocol (MCP) server designed for ComfyUI. It supports extensible APIs (such as txt2img, img2img) based on customer-customized workflows. Each API's parameters and behaviors can be flexibly extended via JSON configuration and tool modules, making it suitable for automation and integration in AI drawing, inference, and similar scenarios.
 
 ---
 
@@ -20,6 +19,9 @@ mcp_server/
 │   │   ├── txt2img_api.json
 │   │   ├── img2img.py
 │   │   ├── img2img_api.json
+│   │   ├── {xxxx}_api.json  # 配合被调用的ComfyUI的工作流。可任意添加MCP工具配置，工具自动注册与API扩展机制。  
+│   │   ├── {xxxx}_api.json  # Used in conjunction with the workflows of the callable ComfyUI, allowing for the addition of MCP tool configurations, with automatic registration and API extension mechanisms.
+│   │   ├── {xxxx}.py
 │   │   └── __init__.py
 │   ├── utils.py             # 配置、模板、随机种子等通用工具 | Utilities for config, templates, random seed, etc.
 │   ├── config.ini           # 服务与ComfyUI地址配置 | Service and ComfyUI address config
@@ -74,8 +76,8 @@ host = 0.0.0.0
 port = 8000
 ```
 
-- `comfyui_server`：ComfyUI 被调用ComfyUI的服务地址与端口 | The service address and port of the target ComfyUI instance to be called
-- `mcp_server`：MCP 服务自身监听地址与端口 | MCP server's own listening address and port
+- `comfyui_server`：被调用的ComfyUI的服务地址与端口 | The service address and port of the target ComfyUI instance to be called
+- `mcp_server`：MCP服务自身监听地址范围与端口 | MCP server's own listening address and port
 
 ---
 
@@ -94,7 +96,42 @@ uv run -m mcp_server.mcpserver
 
 ---
 
-## 工具自动注册与API扩展机制 | Tool Auto-Registration & API Extension
+## ComfyUI_MCP工具自动注册与API扩展机制 | Tool Auto-Registration & API Extension
+
+### 1. 新增自定义工具 | Add Custom Tools
+
+以 `txt2img` 为例，扩展新工具只需：
+- 新增 `tools/myapi.py`，实现 `register_myapi_tool(mcp)` 并注册 API
+- 新增 `tools/myapi_api.json`，定义参数模板(在被调用的ComfyUI的自定义工作流导出同名API，加后缀_api) 
+- 无需修改主入口，自动生效
+
+To add a new tool (e.g., `txt2img`):
+- Add `tools/myapi.py`, implement `register_myapi_tool(mcp)` and register the API
+- Add `tools/myapi_api.json` to define the parameter template (export the same-named API with `_api` suffix from the custom workflow of the target ComfyUI instance)
+- No need to modify the main entry, it will take effect automatically
+
+---
+
+### 典型方法实现与返回格式 | Typical Usage & Return Format
+
+文生图（txt2img）| Text-to-Image (txt2img)
+
+```python
+# tools/txt2img.py 
+def register_txt2img_tool(mcp):
+    async def comfyui_txt2img_impl(prompt: str, pic_width: str, pic_height: str, negative_prompt: str, batch_size: str, model: str) -> str:
+      ...
+# 返回图片 Markdown 格式 | Returns image in Markdown format
+      ...
+        markdown_images = [f"![image]({url})" for url in image_urls]
+        return "\n".join(markdown_images)
+```
+
+- 调用ComfyUI在线工作流HTTP API，获得结果。 | Call the ComfyUI online workflow HTTP API to obtain results.
+- 所有参数均可省略，默认值取自对应Json `tools/txt2img_api.json` | All parameters are optional; default values are taken from the corresponding JSON file `tools/txt2img_api.json`.
+- 返回图片 Markdown 链接，可直接用于文档或前端展示 | Returns image Markdown links, can be used directly in docs or frontend
+
+---
 
 ### 1. 工具自动注册 | Tool Auto-Registration
 
@@ -108,8 +145,6 @@ uv run -m mcp_server.mcpserver
 
 ```python
 # tools/txt2img.py
-from mcp_server.utils import load_config, load_prompt_template, randomize_all_seeds
-
 def register_txt2img_tool(mcp):
     @mcp.tool()
     async def txt2img(prompt: str, pic_width: str = '512', ... ) -> str:
@@ -118,15 +153,15 @@ def register_txt2img_tool(mcp):
 
 ### 2. 配置驱动参数 | Config-Driven Parameters
 
-- 每个 API 的参数签名、类型、注释均可通过同名 JSON（如 `txt2img_api.json`）配置自动生成。
+- 每个 API 的参数签名、类型、注释均可通过同名 JSON（如 `tools/txt2img_api.json`）配置生成。在被调用的ComfyUI的自定义工作流导出同名API，加后缀_api。
 - 所有参数均为可选，未传时自动取模板默认值，支持递归 seed 随机化、模型白名单、batch_size 限制等业务规则。
 - 新增API的JSON模板需在被调用的ComfyUI自定义工作流导出同名API，加后缀_api，并放置于tools目录。
 
-- Each API's parameter signature, type, and docstring can be auto-generated via a same-named JSON (e.g., `txt2img_api.json`).
+- Each API's parameter signature, type, and docstring can be auto-generated via a same-named JSON (e.g., `tools/txt2img_api.json`).
 - All parameters are optional; if not provided, default values from the template are used. Supports recursive seed randomization, model whitelist, batch_size limit, and other business rules.
 - For new APIs, the JSON template should be exported from the custom workflow of the target ComfyUI instance, with the same API name and the suffix `_api`, and placed in the `tools` directory.
 
-**示例片段 | Example snippet：**
+**示例片段 `tools/txt2img_api.json`| Example snippet：**
 
 ```json
 {
@@ -141,52 +176,13 @@ def register_txt2img_tool(mcp):
 }
 ```
 
-### 3. 异步高效 | Asynchronous & Efficient
-
-- 所有 HTTP 调用均为 `async`/`await`，基于 `httpx.AsyncClient`，支持高并发。
-
-- All HTTP calls use `async`/`await` and are based on `httpx.AsyncClient`, supporting high concurrency.
-
-### 4. 新增自定义工具 | Add Custom Tools
-
-以 `txt2img` 为例，扩展新工具只需：
-- 新增 `tools/myapi.py`，实现 `register_myapi_tool(mcp)` 并注册 API
-- 新增 `tools/myapi_api.json`，定义参数模板(在被调用的ComfyUI的自定义工作流导出同名API，加后缀_api) 
-- 无需修改主入口，自动生效
-
-To add a new tool (e.g., `txt2img`):
-- Add `tools/myapi.py`, implement `register_myapi_tool(mcp)` and register the API
-- Add `tools/myapi_api.json` to define the parameter template (export the same-named API with `_api` suffix from the custom workflow of the target ComfyUI instance)
-- No need to modify the main entry, it will take effect automatically
-
----
-
-## 典型用法与返回格式 | Typical Usage & Return Format
-
-### 文生图（txt2img）| Text-to-Image (txt2img)
-
-```python
-result = await mcp.tools.txt2img(
-    prompt="一只可爱的猫",
-    pic_width="512",
-    pic_height="512",
-    negative_prompt="bad hand",
-    batch_size="1",
-    model="sd_xl_base_1.0.safetensors"
-)
-# 返回图片 Markdown 格式 | Returns image in Markdown format
-```
-
-- 所有参数均可省略，自动取默认模板 | All parameters are optional, defaults are used if omitted
-- 返回图片 Markdown 链接，可直接用于文档或前端展示 | Returns image Markdown links, can be used directly in docs or frontend
-
 ---
 
 ## 使用 MCP Inspector 进行调试 | Debug with MCP Inspector
 
 MCP Inspector 是官方推荐的交互式开发者工具，可用于测试和调试 MCP 服务端。
 
-MCP Inspector is the official recommended interactive developer tool for testing and debugging MCP servers.
+MCP Inspector is the officially recommended interactive developer tool for testing and debugging MCP servers.
 
 - 官方文档 | Official Docs：[https://modelcontextprotocol.io/docs/tools/inspector](https://modelcontextprotocol.io/docs/tools/inspector)
 
@@ -236,18 +232,6 @@ To integrate more models, parameters, or business rules, just add/modify tool mo
 
 ---
 
-## License
-
-MIT
-
----
-
-如需详细开发文档、API 参考或二次开发指导，请参考项目内 Memory Bank 设计文档与规则说明。
-
-For detailed development docs, API reference, or secondary development guidance, please refer to the Memory Bank design docs and rule descriptions in the project.
-
----
-
 ## 待优化 | To Do
 
 - 参数类型自动推断与校验增强：支持更智能的参数类型推断和更严格的校验，提升健壮性。
@@ -270,11 +254,11 @@ For detailed development docs, API reference, or secondary development guidance,
   
   Multimedia data interaction support: Support input, output, and processing of multimedia data such as images, audio, and video.
 
+- 更全面的ComfyUI HTTP API的集成。
+
+  More comprehensive integration of the ComfyUI HTTP API.
+
 - 单元测试与CI完善：补充更多单元测试用例，集成持续集成（CI）流程，保障代码质量。
   
   Improved unit testing & CI: Add more unit tests and integrate CI pipelines to ensure code quality.
 
-=======
-# ComfyUI_MCP
- MCP Server is a loosely coupled, extensible, and configuration-driven ModelContextProtocol (MCP) server designed for ComfyUI. 
->>>>>>> 7fff40a54a5a0c647cbdbcbd1d1b762932dec7ce
