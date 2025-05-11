@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # MCP Server（ComfyUI ModelContextProtocol 服务端 | ModelContextProtocol Server for ComfyUI）
 
 ## 项目简介 | Project Introduction
@@ -273,3 +274,7 @@ For detailed development docs, API reference, or secondary development guidance,
   
   Improved unit testing & CI: Add more unit tests and integrate CI pipelines to ensure code quality.
 
+=======
+# ComfyUI_MCP
+ MCP Server is a loosely coupled, extensible, and configuration-driven ModelContextProtocol (MCP) server designed for ComfyUI. 
+>>>>>>> 7fff40a54a5a0c647cbdbcbd1d1b762932dec7ce
