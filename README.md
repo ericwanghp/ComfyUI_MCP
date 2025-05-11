@@ -2,9 +2,9 @@
 
 ## 项目简介 | Project Introduction
 
-ComfyUI_MCP Server 是为 ComfyUI 设计的松耦合、可扩展、配置驱动的模型上下文协议（ModelContextProtocol）服务端。支持依据客户定制工作流可扩展 API（如 txt2img、img2img），每个 API 的参数和行为均可通过 JSON 配置和工具模块灵活扩展，适合 AI 绘图、推理等场景的自动化与集成。
+ComfyUI_MCP Server 是为 ComfyUI 设计的松耦合、可扩展、配置驱动的模型上下文协议（ModelContextProtocol）服务端。支持依据客户定制工作流可扩展MCP服务(tool) 如: txt2img、img2img，每个 MCP服务(tool)的参数和行为均可通过 JSON 配置和工具模块灵活扩展，适合 AI 绘图、推理等场景的自动化与集成。
 
-ComfyUI_MCP Server is a loosely coupled, extensible, and configuration-driven ModelContextProtocol (MCP) server designed for ComfyUI. It supports extensible APIs (such as txt2img, img2img) based on customer-customized workflows. Each API's parameters and behaviors can be flexibly extended via JSON configuration and tool modules, making it suitable for automation and integration in AI drawing, inference, and similar scenarios.
+ComfyUI_MCP Server is a loosely coupled, extensible, and configuration-driven ModelContextProtocol (MCP) server designed for ComfyUI. It supports extensible MCP services(tools) such as txt2img, img2img, based on customer-customized workflows. Each MCP services(tools)'s parameters and behaviors can be flexibly extended via JSON configuration and tool modules, making it suitable for automation and integration in AI drawing, inference, and similar scenarios.
 
 ---
 
