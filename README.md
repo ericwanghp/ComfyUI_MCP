@@ -19,9 +19,9 @@ mcp_server/
 │   │   ├── txt2img_api.json
 │   │   ├── img2img.py
 │   │   ├── img2img_api.json
-│   │   ├── {xxxx}_api.json  # 配合被调用的ComfyUI的工作流。可任意添加MCP工具配置，工具自动注册与API扩展机制。  
+│   │   ├── {xxxx}.py        # 配合被调用的ComfyUI的工作流。可任意添加MCP工具配置，工具自动注册与API扩展机制。  
 │   │   ├── {xxxx}_api.json  # Used in conjunction with the workflows of the callable ComfyUI, allowing for the addition of MCP tool configurations, with automatic registration and API extension mechanisms.
-│   │   ├── {xxxx}.py
+│   │   ├── .......
 │   │   └── __init__.py
 │   ├── utils.py             # 配置、模板、随机种子等通用工具 | Utilities for config, templates, random seed, etc.
 │   ├── config.ini           # 服务与ComfyUI地址配置 | Service and ComfyUI address config
@@ -98,7 +98,7 @@ uv run -m mcp_server.mcpserver
 
 ## ComfyUI_MCP工具自动注册与API扩展机制 | Tool Auto-Registration & API Extension
 
-### 1. 新增自定义工具 | Add Custom Tools
+### 1. 新增自定义MCP工具和方法实现 | Add Custom MCP Tools and Method Implementations
 
 以 `txt2img` 为例，扩展新工具只需：
 - 新增 `tools/myapi.py`，实现 `register_myapi_tool(mcp)` 并注册 API
@@ -133,7 +133,7 @@ def register_txt2img_tool(mcp):
 
 ---
 
-### 1. 工具自动注册 | Tool Auto-Registration
+### 2. 工具自动注册 | Tool Auto-Registration
 
 - `mcpserver.py` 会自动遍历 `tools/` 目录下所有 `.py` 文件（如 `txt2img.py`），并调用其中的 `register_xxx_tool(mcp)` 注册函数。
 - 每个工具模块需实现 `register_xxx_tool(mcp)`，并通过 `@mcp.tool()` 装饰器注册 API。
@@ -151,7 +151,7 @@ def register_txt2img_tool(mcp):
         ...
 ```
 
-### 2. 配置驱动参数 | Config-Driven Parameters
+### 3. 配置驱动参数 | Config-Driven Parameters
 
 - 每个 API 的参数签名、类型、注释均可通过同名 JSON（如 `tools/txt2img_api.json`）配置生成。在被调用的ComfyUI的自定义工作流导出同名API，加后缀_api。
 - 所有参数均为可选，未传时自动取模板默认值，支持递归 seed 随机化、模型白名单、batch_size 限制等业务规则。
