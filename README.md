@@ -16,11 +16,6 @@ ComfyUI_MCP Server is a loosely coupled, extensible, and configuration-driven Mo
     <img src="https://img.youtube.com/vi/vXZOBZ_FsA8/0.jpg" alt="ComfyUI_MCP Server Demo" width="480">
   </a>
 </p>
-
-<p align="center">
-  <iframe width="560" height="315" src="https://www.youtube.com/embed/vXZOBZ_FsA8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-</p>
-
 </details>
 
 
