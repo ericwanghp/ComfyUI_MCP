@@ -32,7 +32,7 @@ ComfyUI_MCP Server is a loosely coupled, extensible, and configuration-driven Mo
 mcp_server/
 ├── mcp_server/
 │   ├── mcpserver.py         # 主入口，自动注册 tools 目录下所有工具 | Main entry, auto-registers all tools in the tools directory
-│   ├── tools/               # 工具模块与 API 配置（每个API一个py和json）| Tool modules and API configs (one .py and .json per API)
+│   ├── tools/               # 工具模块与mcp tool配置（每个mcp tool一个py和json）| Tool modules and configs (one .py and .json per mcp tool)
 │   │   ├── txt2img.py
 │   │   ├── txt2img_api.json
 │   │   ├── img2img.py
@@ -42,7 +42,7 @@ mcp_server/
 │   │   ├── .......
 │   │   └── __init__.py
 │   ├── utils.py             # 配置、模板、随机种子等通用工具 | Utilities for config, templates, random seed, etc.
-│   ├── config.ini           # 服务与ComfyUI地址配置 | Service and ComfyUI address config
+│   ├── config.ini           # mcp服务与被调用的ComfyUI地址配置 | Service and ComfyUI address config
 │   └── __init__.py
 ├── pyproject.toml           # 构建配置与依赖 | Build config and dependencies
 └── README.md                # 使用说明（本文件）| User guide (this file)
