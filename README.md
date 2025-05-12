@@ -34,11 +34,16 @@ mcp_server/
 │   │   ├── img2img_api.json
 │   │   ├── {xxxx}.py        # 配合被调用的ComfyUI的工作流。可任意添加MCP工具配置，工具自动注册与API扩展机制。  
 │   │   ├── {xxxx}_api.json  # Used in conjunction with the workflows of the callable ComfyUI, allowing for the addition of MCP tool configurations, with automatic registration and API extension mechanisms.
-│   │   ├── .......
+│   │   ├── ......
 │   │   └── __init__.py
 │   ├── utils.py             # 配置、模板、随机种子等通用工具 | Utilities for config, templates, random seed, etc.
 │   ├── config.ini           # mcp服务与被调用的ComfyUI地址配置 | Service and ComfyUI address config
 │   └── __init__.py
+├── workflows/               # MCP工具可实现的ComfyUI工作流json，与tools/对应。 | The "ComfyUI workflow json" that the "MCP tool" can achieve. Corresponding to "tools/".
+│   ├── txt2img.json
+│   ├── img2img.json
+│   ├── {xxxx}.json          
+│   ├── ......
 ├── pyproject.toml           # 构建配置与依赖 | Build config and dependencies
 └── README.md                # 使用说明（本文件）| User guide (this file)
 ```
