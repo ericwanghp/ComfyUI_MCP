@@ -91,7 +91,7 @@ def register_txt2img_tool(mcp):
         }
         
         default_logger.debug(f"开始向ComfyUI发送API请求: {comfyui_host}/api/prompt")
-        
+        default_logger.debug(f"请求体内容: {json.dumps(body, ensure_ascii=False, indent=2)}")
         async with httpx.AsyncClient() as client:
             resp = await client.post(f"{comfyui_host}/api/prompt", json=body)
             resp.raise_for_status()
@@ -166,6 +166,7 @@ def register_txt2img_tool(mcp):
             default_logger.info(f"接收到文生图请求: prompt='{prompt[:30]}...'")
             result = await comfyui_txt2img_impl(prompt, pic_width, pic_height, negative_prompt, batch_size, model)
             default_logger.info(f"文生图请求完成: 生成 {batch_size} 张图片")
+            default_logger.debug(f"返回结果: {result}")
             return result
         except httpx.RequestError as e:
             error_msg = f"API请求失败: {str(e)} | API request failed: {str(e)}"

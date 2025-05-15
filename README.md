@@ -38,6 +38,7 @@ mcp_server/
 │   │   └── __init__.py
 │   ├── utils.py             # 配置、模板、随机种子等通用工具 | Utilities for config, templates, random seed, etc.
 │   ├── config.ini           # mcp服务与被调用的ComfyUI地址配置 | Service and ComfyUI address config
+│   ├── logger.py & decorator.py                # 日志系统 | logs sys
 │   └── __init__.py
 ├── workflows/               # MCP工具可实现的ComfyUI工作流json，与tools/对应。 | The "ComfyUI workflow json" that the "MCP tool" can achieve. Corresponding to "tools/".
 │   ├── txt2img.json
@@ -61,9 +62,6 @@ It is recommended to use [uv](https://github.com/astral-sh/uv) or [pdm](https://
 pip install uv
 uv pip install -r pyproject.toml
 
-# 或使用pdm | Or use pdm
-pip install pdm
-pdm install
 ```
 
 如需手动安装依赖，可参考 pyproject.toml：
@@ -84,18 +82,10 @@ If you need to install dependencies manually, refer to pyproject.toml:
 
 Edit `mcp_server/mcp_server/config.ini`:
 
-```ini
-[comfyui_server]
-host = 127.0.0.1
-port = 8188
-
-[mcp_server]
-host = 0.0.0.0
-port = 8000
-```
-
 - `comfyui_server`：被调用的ComfyUI的服务地址与端口 | The service address and port of the target ComfyUI instance to be called
 - `mcp_server`：MCP服务自身监听地址范围与端口 | MCP server's own listening address and port
+- `transport`：MCP服务器传输模式，可选`sse`（Server-Sent Events）、`streamable-http`（流式HTTP）、`stdio`（标准输入输出）。可通过`config.ini`灵活配置，无需重启服务即可切换。  
+  `transport`: MCP server transport mode, options: `sse` (Server-Sent Events), `streamable-http`, or `stdio`. Can be flexibly configured via `config.ini` without code changes.
 
 ---
 
@@ -109,7 +99,7 @@ It is recommended to use uv to start (no need to change directory, package struc
 uv run -m mcp_server.mcpserver
 ```
 
-- 默认以 SSE（Server-Sent Events）模式运行 | Runs in SSE (Server-Sent Events) mode by default
+- 默认以流式HTTP（streamable-http）模式运行 | Runs in streamable-http mode by default
 - 自动注册 `tools/` 目录下所有工具模块 | Automatically registers all tool modules in the `tools/` directory
 
 ---
@@ -195,6 +185,21 @@ def register_txt2img_tool(mcp):
 }
 ```
 
+### 4. 资源注册与管理 | Resource Registration & Management
+
+支持通过 `@mcp.resource("info//ckpt")` 装饰器注册资源型API，实现如模型等资源的自动发现与管理。
+
+Supports resource-type API registration via the `@mcp.resource("info//ckpt")` decorator, enabling automatic discovery and management of resources such as models.
+
+**示例 | Example：**
+
+```python
+@mcp.resource("info//ckpt")
+async def list_checkpoints() -> list:
+    # 返回所有可用的ckpt模型列表
+    ...
+```
+
 ---
 
 ## 使用 MCP Inspector 进行调试 | Debug with MCP Inspector
@@ -232,12 +237,16 @@ npx @modelcontextprotocol/inspector uv run -m mcp_server.mcpserver
 - **新增工具未生效**：确认已实现 `register_xxx_tool(mcp)` 并放置于 `tools/` 目录
 - **参数校验失败**：请检查 JSON 模板与实际参数类型、范围。(在被调用的ComfyUI的自定义工作流导出同名API，加后缀_api，并放置于 `tools/` 目录) 
 - **Inspector 无法连接**：确认 MCP 服务已启动且端口未被占用
+- **日志未生成或无输出**：请检查`config.ini`中的`logging`配置项，确保`log_path`路径存在且有写入权限。
+- **MCP服务传输模式切换无效**：请确认已正确修改`config.ini`中的`transport`参数，并重启服务。
 
 - **ComfyUI not started or wrong address**: Please check `config.ini`
 - **Dependencies not installed**: Please run `uv pip install -r pyproject.toml` or `pdm install` first
 - **New tool not effective**: Make sure `register_xxx_tool(mcp)` is implemented and placed in the `tools/` directory
 - **Parameter validation failed**: Please check the JSON template and actual parameter types/ranges. (Export the same-named API with `_api` suffix from the custom workflow of the target ComfyUI instance and place it in the `tools/` directory)
 - **Inspector cannot connect**: Make sure the MCP server is running and the port is not occupied
+- **Logs not generated or no output**: Please check the `logging` configuration in `config.ini` to ensure the `log_path` exists and has write permissions.
+- **MCP service transport mode switch ineffective**: Please confirm that the `transport` parameter in `config.ini` has been correctly modified and restart the service.
 
 ---
 

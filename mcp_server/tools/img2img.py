@@ -1,6 +1,7 @@
 import uuid
 import httpx
 import asyncio
+import json
 from mcp_server.utils import load_config, load_prompt_template, randomize_all_seeds
 from mcp_server.logger_decorator import log_mcp_call
 from mcp_server.logger import default_logger
@@ -29,7 +30,7 @@ def register_img2img_tool(mcp):
         }
         
         default_logger.debug(f"开始向ComfyUI发送API请求: {comfyui_host}/api/prompt")
-        
+        default_logger.debug(f"请求体内容: {json.dumps(body, ensure_ascii=False, indent=2)}")
         async with httpx.AsyncClient() as client:
             resp = await client.post(f"{comfyui_host}/api/prompt", json=body)
             resp.raise_for_status()
@@ -88,6 +89,7 @@ def register_img2img_tool(mcp):
             default_logger.info(f"接收到图生图请求: prompt='{prompt[:30]}...'")
             result = await comfyui_img2img_impl(prompt)
             default_logger.info(f"图生图请求完成")
+            default_logger.debug(f"返回结果: {result}")
             return result
         except httpx.RequestError as e:
             error_msg = f"API请求失败: {str(e)} | API request failed: {str(e)}"
