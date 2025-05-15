@@ -52,10 +52,21 @@ def load_config():
     return f"http://{host}:{port}"
 
 def load_uvicorn_config():
+    """
+    加载MCP服务器配置
+    Load MCP server configuration
+    
+    返回:
+        tuple: (host, port, transport)
+    
+    Returns:
+        tuple: (host, port, transport)
+    """
     config = _get_config_parser()
     uvicorn_host = config.get('mcp_server', 'host', fallback='0.0.0.0')
     uvicorn_port = config.getint('mcp_server', 'port', fallback=9000)
-    return uvicorn_host, uvicorn_port
+    transport = config.get('mcp_server', 'transport', fallback='sse')
+    return uvicorn_host, uvicorn_port, transport
 
 def load_logging_config():
     """

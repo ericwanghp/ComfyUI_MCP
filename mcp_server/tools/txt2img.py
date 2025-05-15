@@ -1,9 +1,60 @@
 import uuid
 import httpx
 import asyncio
+import json
+import os
 from mcp_server.utils import load_config, load_prompt_template, randomize_all_seeds
 from mcp_server.logger_decorator import log_mcp_call
 from mcp_server.logger import default_logger
+
+def _load_default_values():
+    """
+    从txt2img_api.json中加载默认值
+    Load default values from txt2img_api.json
+    
+    返回:
+        dict: 包含默认值的字典
+    
+    Returns:
+        dict: Dictionary containing default values
+    """
+    try:
+        # 获取txt2img_api.json文件路径
+        api_json_path = os.path.join(os.path.dirname(__file__), 'txt2img_api.json')
+        
+        with open(api_json_path, 'r', encoding='utf-8') as f:
+            api_json = json.load(f)
+        
+        # 提取各个字段的默认值
+        default_prompt = api_json.get("6", {}).get("inputs", {}).get("text", "beautiful scenery nature glass bottle landscape, , purple galaxy bottle,")
+        default_negative_prompt = api_json.get("7", {}).get("inputs", {}).get("text", "text, watermark")
+        default_width = str(api_json.get("5", {}).get("inputs", {}).get("width", 512))
+        default_height = str(api_json.get("5", {}).get("inputs", {}).get("height", 512))
+        default_batch_size = str(api_json.get("5", {}).get("inputs", {}).get("batch_size", 1))
+        default_model = api_json.get("4", {}).get("inputs", {}).get("ckpt_name", "sd_xl_base_1.0.safetensors")
+        
+        return {
+            "prompt": default_prompt,
+            "negative_prompt": default_negative_prompt,
+            "width": default_width,
+            "height": default_height,
+            "batch_size": default_batch_size,
+            "model": default_model
+        }
+    except Exception as e:
+        default_logger.error(f"加载默认值时出错: {str(e)}")
+        # 如果加载失败，返回原来的默认值
+        return {
+            "prompt": "beautiful scenery nature glass bottle landscape, , purple galaxy bottle,",
+            "negative_prompt": "text, watermark",
+            "width": "512",
+            "height": "512",
+            "batch_size": "1",
+            "model": "sd_xl_base_1.0.safetensors"
+        }
+
+# 加载默认值
+DEFAULT_VALUES = _load_default_values()
 
 def register_txt2img_tool(mcp):
     async def comfyui_txt2img_impl(prompt: str, pic_width: str, pic_height: str, negative_prompt: str, batch_size: str, model: str) -> str:
@@ -82,25 +133,27 @@ def register_txt2img_tool(mcp):
     @mcp.tool()
     @log_mcp_call
     async def txt2img(
-        prompt: str,
-        pic_width: str = '512',
-        pic_height: str = '512',
-        negative_prompt: str = "text, watermark",
-        batch_size: str = '1',
-        model: str = "sd_xl_base_1.0.safetensors"
+        prompt: str = DEFAULT_VALUES["prompt"],
+        pic_width: str = DEFAULT_VALUES["width"],
+        pic_height: str = DEFAULT_VALUES["height"],
+        negative_prompt: str = DEFAULT_VALUES["negative_prompt"],
+        batch_size: str = DEFAULT_VALUES["batch_size"],
+        model: str = DEFAULT_VALUES["model"]
     ) -> str:
         """
         文生图服务：输入prompt，返回图片Markdown格式（异步版）
         支持自定义输出图片宽高、负向提示词、批次、模型（均为可选）。
+        所有默认值从txt2img_api.json配置文件中读取。
         Text-to-image service: input prompt, return image in Markdown format (async version).
         Supports custom output image size, negative prompt, batch size, and model (all optional).
+        All default values are loaded from txt2img_api.json configuration file.
         Args:
             prompt: str 正向prompt | positive prompt
-            pic_width: str 输出图片宽度（可选，不填则用默认值）| output image width (optional, default if not set)
-            pic_height: str 输出图片高度（可选，不填则用默认值）| output image height (optional, default if not set)
-            negative_prompt: str 负向提示词（可选，不填则用默认值）| negative prompt (optional, default if not set)
-            batch_size: str 生成批次数（可选，最大4，不填则用默认值）| batch size (optional, max 4, default if not set)
-            model: str 模型名称（可选，不填则用默认值）| model name (optional, default if not set)
+            pic_width: str 输出图片宽度（可选，默认值从配置文件读取）| output image width (optional, default from config)
+            pic_height: str 输出图片高度（可选，默认值从配置文件读取）| output image height (optional, default from config)
+            negative_prompt: str 负向提示词（可选，默认值从配置文件读取）| negative prompt (optional, default from config)
+            batch_size: str 生成批次数（可选，最大4，默认值从配置文件读取）| batch size (optional, max 4, default from config)
+            model: str 模型名称（可选，默认值从配置文件读取）| model name (optional, default from config)
 
         Returns:
             str 图片Markdown格式 | image in Markdown format

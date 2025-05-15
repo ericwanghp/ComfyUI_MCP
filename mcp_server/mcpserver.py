@@ -3,7 +3,7 @@ import os
 import asyncio
 from mcp.server.fastmcp import FastMCP
 from .logger import default_logger
-from .utils import load_logging_config, init_mcp, get_tools_dir
+from .utils import load_logging_config, init_mcp, get_tools_dir, load_uvicorn_config
 import logging
 
 # 获取工具目录路径
@@ -19,6 +19,15 @@ except Exception as e:
     default_logger.error(f"初始化MCP服务环境时出错: {str(e)}")
 
 mcp = FastMCP("comfyui-mcp")
+# 从配置文件中读取MCP服务器的主机、端口和传输模式配置
+# Load MCP server host, port and transport mode from configuration file
+host, port, transport = load_uvicorn_config()
+mcp.settings.port = port
+mcp.settings.host = host
+
+# 记录MCP服务器配置信息
+# Log MCP server configuration information
+default_logger.info(f"MCP服务器配置 - 主机: {host}, 端口: {port}, 传输模式: {transport}")
 
 # 自动遍历tools目录下所有.py文件，注册为MCP工具
 # Automatically traverse all .py files in the tools directory and register as MCP tools
@@ -55,10 +64,14 @@ if __name__ == "__main__":
         default_logger.info(f"日志级别: {logging.getLevelName(log_config['level'])}")
         default_logger.info(f"日志文件: {log_config['log_path']}")
         
-        # 以SSE模式启动MCP服务
-        # Start MCP server in SSE mode
-        default_logger.info("正在启动MCP服务，传输模式: SSE")
-        mcp.run(transport='sse')
+        # 显示MCP服务器配置
+        # Display MCP server configuration
+        default_logger.info(f"MCP服务器地址: {mcp.settings.host}:{mcp.settings.port}")
+        
+        # 启动MCP服务
+        # Start MCP server
+        default_logger.info(f"正在启动MCP服务，传输模式: {transport}")
+        mcp.run(transport=transport)
     except Exception as e:
         # 记录服务异常信息
         # Log service exception information
