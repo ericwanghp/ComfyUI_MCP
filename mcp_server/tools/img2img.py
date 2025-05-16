@@ -89,7 +89,6 @@ def register_img2img_tool(mcp):
             default_logger.info(f"接收到图生图请求: prompt='{prompt[:30]}...'")
             result = await comfyui_img2img_impl(prompt)
             default_logger.info(f"图生图请求完成")
-            default_logger.debug(f"返回结果: {result}")
             return result
         except httpx.RequestError as e:
             error_msg = f"API请求失败: {str(e)} | API request failed: {str(e)}"
