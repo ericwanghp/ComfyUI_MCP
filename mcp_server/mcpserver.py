@@ -71,7 +71,19 @@ if __name__ == "__main__":
         # 启动MCP服务
         # Start MCP server
         default_logger.info(f"正在启动MCP服务，传输模式: {transport}")
-        mcp.run(transport=transport)
+        default_logger.info(f"transport repr: {repr(transport)}")
+        # 去除transport前后空白字符
+        transport = transport.strip()
+        # 确保使用有效的传输模式
+        # Ensure using valid transport mode
+        valid_transports = {"stdio": "stdio", "sse": "sse", "/sse": "sse", "streamable-http": "streamable-http", "/mcp": "streamable-http"}
+        if transport in valid_transports:
+            transport_value = valid_transports[transport]
+            default_logger.info(f"使用传输模式: {transport_value}")
+            mcp.run(transport=transport_value)
+        else:
+            default_logger.warning(f"未知的传输模式: {transport}，将使用默认值'sse'")
+            mcp.run(transport="sse")
     except Exception as e:
         # 记录服务异常信息
         # Log service exception information

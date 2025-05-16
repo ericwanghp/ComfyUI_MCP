@@ -11,7 +11,7 @@ def register_resource_info_tool(mcp):
     @log_mcp_call
     async def get_checkpoint_list() -> str:
         """
-        获取ComfyUI模型清单
+        获取ComfyUI checkpoint模型列表
         Get ComfyUI checkpoint model list
         
         Returns:
@@ -81,3 +81,11 @@ def register_resource_info_tool(mcp):
             error_msg = f"获取模型清单时出错: {str(e)}"
             default_logger.error(error_msg)
             return error_msg 
+
+    @mcp.resource("info://all")
+    async def get_all_object_info() -> dict:
+        """
+        返回完整的ComfyUI节点描述信息（object_info.json）
+        Return the full ComfyUI node description info (object_info.json)
+        """
+        return load_object_info(default_logger) 
