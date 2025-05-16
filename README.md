@@ -51,52 +51,14 @@ mcp_server/
 
 ---
 
-## 依赖安装 | Dependency Installation
-
-推荐使用 [uv](https://github.com/astral-sh/uv) 或 [pdm](https://pdm.fming.dev/) 管理依赖：
-
-It is recommended to use [uv](https://github.com/astral-sh/uv) or [pdm](https://pdm.fming.dev/) for dependency management:
+## 安装 & 配置 & 运行 | Installation & Configuration & Run
 
 ```bash
-# 安装uv（推荐）| Install uv (recommended)
-pip install uv
-uv pip install -r pyproject.toml
+python install.py # install(check item 2~3) & config(check item 1) 
 
-```
+run_mcp.bat #run on windows
+./run_mcp.sh #run on linux
 
-如需手动安装依赖，可参考 pyproject.toml：
-- Python >= 3.12
-- httpx >= 0.28.1
-- mcp[cli] >= 1.8.0
-
-If you need to install dependencies manually, refer to pyproject.toml:
-- Python >= 3.12
-- httpx >= 0.28.1
-- mcp[cli] >= 1.8.0
-
----
-
-## 配置说明 | Configuration
-
-编辑 `mcp_server/mcp_server/config.ini`：
-
-Edit `mcp_server/mcp_server/config.ini`:
-
-- `comfyui_server`：被调用的ComfyUI的服务地址与端口 | The service address and port of the target ComfyUI instance to be called
-- `mcp_server`：MCP服务自身监听地址范围与端口 | MCP server's own listening address and port
-- `transport`：MCP服务器传输模式，可选`sse`（Server-Sent Events）、`streamable-http`（流式HTTP）、`stdio`（标准输入输出）。可通过`config.ini`灵活配置，无需重启服务即可切换。  
-  `transport`: MCP server transport mode, options: `sse` (Server-Sent Events), `streamable-http`, or `stdio`. Can be flexibly configured via `config.ini` without code changes.
-
----
-
-## 启动服务 | Start the Service
-
-推荐使用 uv 启动（无需切换目录，自动识别包结构）：
-
-It is recommended to use uv to start (no need to change directory, package structure is auto-detected):
-
-```bash
-uv run -m mcp_server.mcpserver
 ```
 
 - 默认以流式HTTP（streamable-http）模式运行 | Runs in streamable-http mode by default
@@ -212,18 +174,15 @@ MCP Inspector is the officially recommended interactive developer tool for testi
 
 ### 快速启动 Inspector | Quick Start Inspector
 
-无需安装，直接使用 npx：
-
-No installation required, use npx directly:
-
 ```bash
-npx @modelcontextprotocol/inspector uv run -m mcp_server.mcpserver
+run_mcp.bat --inspector #run on windows
+./run_mcp.sh --inspector #run on linux
 ```
 
-- Inspector 会自动连接本地 MCP 服务，支持工具、资源、提示词等全方位交互测试。
+- Inspector 可以连接本地 MCP 服务，支持工具、资源、提示词等全方位交互测试。
 - 可在 Inspector 的 Tools 面板中查看所有自动注册的 API 工具，测试参数、查看返回、调试异常。
 
-- Inspector will automatically connect to the local MCP server, supporting full interactive testing of tools, resources, prompts, etc.
+- Inspector can connect to the local MCP server, supporting full interactive testing of tools, resources, prompts, etc.
 - You can view all auto-registered API tools in the Inspector's Tools panel, test parameters, view results, and debug exceptions.
 
 更多用法详见 [官方 Inspector 指南 | See more in the official Inspector guide](https://modelcontextprotocol.io/docs/tools/inspector)。
@@ -233,7 +192,7 @@ npx @modelcontextprotocol/inspector uv run -m mcp_server.mcpserver
 ## 常见问题 | FAQ
 
 - **ComfyUI 未启动或地址错误**：请检查 `config.ini` 配置
-- **依赖未安装**：请先执行 `uv pip install -r pyproject.toml` 或 `pdm install`
+- **依赖未安装**：请先执行 `uv pip install -r pyproject.toml` 
 - **新增工具未生效**：确认已实现 `register_xxx_tool(mcp)` 并放置于 `tools/` 目录
 - **参数校验失败**：请检查 JSON 模板与实际参数类型、范围。(在被调用的ComfyUI的自定义工作流导出同名API，加后缀_api，并放置于 `tools/` 目录) 
 - **Inspector 无法连接**：确认 MCP 服务已启动且端口未被占用
@@ -241,7 +200,7 @@ npx @modelcontextprotocol/inspector uv run -m mcp_server.mcpserver
 - **MCP服务传输模式切换无效**：请确认已正确修改`config.ini`中的`transport`参数，并重启服务。
 
 - **ComfyUI not started or wrong address**: Please check `config.ini`
-- **Dependencies not installed**: Please run `uv pip install -r pyproject.toml` or `pdm install` first
+- **Dependencies not installed**: Please run `uv pip install -r pyproject.toml` 
 - **New tool not effective**: Make sure `register_xxx_tool(mcp)` is implemented and placed in the `tools/` directory
 - **Parameter validation failed**: Please check the JSON template and actual parameter types/ranges. (Export the same-named API with `_api` suffix from the custom workflow of the target ComfyUI instance and place it in the `tools/` directory)
 - **Inspector cannot connect**: Make sure the MCP server is running and the port is not occupied
