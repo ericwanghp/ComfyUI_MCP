@@ -105,9 +105,10 @@ class MCPLogger:
         self.logger = logging.getLogger("mcp_logger")
         self.logger.setLevel(log_level)
         
-        # 添加格式化器
-        # Add formatter
-        formatter = JournalctlFormatter()
+        # 文件用详细格式
+        formatter_file = JournalctlFormatter()
+        # 控制台用简单格式
+        formatter_console = logging.Formatter('%(levelname)s %(message)s')
         
         # 清除现有的处理器
         # Clear existing handlers
@@ -117,7 +118,7 @@ class MCPLogger:
         # Add console handler
         if console_output:
             console_handler = logging.StreamHandler(sys.stdout)
-            console_handler.setFormatter(formatter)
+            console_handler.setFormatter(formatter_console)
             self.logger.addHandler(console_handler)
         
         # 添加文件处理器（如果提供了路径）
@@ -135,8 +136,9 @@ class MCPLogger:
                 backupCount=backup_count,
                 encoding='utf-8'
             )
-            file_handler.setFormatter(formatter)
+            file_handler.setFormatter(formatter_file)
             self.logger.addHandler(file_handler)
+            self.logger.propagate = False
     
     def log_mcp_call(self, 
                      tool_name: str, 

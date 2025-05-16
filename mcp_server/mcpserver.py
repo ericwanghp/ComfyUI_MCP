@@ -18,7 +18,7 @@ try:
 except Exception as e:
     default_logger.error(f"初始化MCP服务环境时出错: {str(e)}")
 
-mcp = FastMCP("comfyui-mcp")
+mcp = FastMCP("ComfyUI-MCP-Server")
 # 从配置文件中读取MCP服务器的主机、端口和传输模式配置
 # Load MCP server host, port and transport mode from configuration file
 host, port, transport = load_uvicorn_config()
@@ -42,7 +42,7 @@ for fname in os.listdir(tools_dir):
             if register_func:
                 register_func(mcp)
                 tool_count += 1
-                default_logger.info(f"成功注册MCP工具: {modname}")
+                default_logger.debug(f"成功注册MCP工具: {modname}")
             else:
                 default_logger.warning(f"模块 {modname} 中未找到注册函数 register_{modname}_tool")
         except Exception as e:
@@ -64,26 +64,9 @@ if __name__ == "__main__":
         default_logger.info(f"日志级别: {logging.getLevelName(log_config['level'])}")
         default_logger.info(f"日志文件: {log_config['log_path']}")
         
-        # 显示MCP服务器配置
-        # Display MCP server configuration
-        default_logger.info(f"MCP服务器地址: {mcp.settings.host}:{mcp.settings.port}")
+
+        mcp.run(transport=transport)
         
-        # 启动MCP服务
-        # Start MCP server
-        default_logger.info(f"正在启动MCP服务，传输模式: {transport}")
-        default_logger.info(f"transport repr: {repr(transport)}")
-        # 去除transport前后空白字符
-        transport = transport.strip()
-        # 确保使用有效的传输模式
-        # Ensure using valid transport mode
-        valid_transports = {"stdio": "stdio", "sse": "sse", "/sse": "sse", "streamable-http": "streamable-http", "/mcp": "streamable-http"}
-        if transport in valid_transports:
-            transport_value = valid_transports[transport]
-            default_logger.info(f"使用传输模式: {transport_value}")
-            mcp.run(transport=transport_value)
-        else:
-            default_logger.warning(f"未知的传输模式: {transport}，将使用默认值'sse'")
-            mcp.run(transport="sse")
     except Exception as e:
         # 记录服务异常信息
         # Log service exception information
