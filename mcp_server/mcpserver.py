@@ -22,9 +22,9 @@ mcp = FastMCP("ComfyUI-MCP-Server")
 # 从配置文件中读取MCP服务器的主机、端口和传输模式配置
 # Load MCP server host, port and transport mode from configuration file
 host, port, transport = load_uvicorn_config()
+
 mcp.settings.port = port
 mcp.settings.host = host
-mcp.settings.transport = transport
 
 # 记录MCP服务器配置信息
 # Log MCP server configuration information

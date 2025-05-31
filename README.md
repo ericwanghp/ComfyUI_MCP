@@ -80,9 +80,7 @@ To add a new tool (e.g., `txt2img`):
 - Add `tools/myapi_api.json` to define the parameter template (export the same-named API with `_api` suffix from the custom workflow of the target ComfyUI instance)
 - No need to modify the main entry, it will take effect automatically
 
----
-
-### 典型方法实现与返回格式 | Typical Usage & Return Format
+#### 典型方法实现与返回格式 | Typical Usage & Return Format
 
 文生图（txt2img）| Text-to-Image (txt2img)
 
